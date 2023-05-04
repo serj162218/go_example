@@ -1,0 +1,173 @@
+<html>
+
+<head>
+	<title>Chatting Room</title>
+</head>
+<script src="/assets/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+	integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+	crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+	#chatTitle {
+		text-align: center;
+	}
+
+	#centerDiv {
+		margin-left: auto;
+		margin-right: auto;
+		width: 56rem;
+	}
+
+	#chat {
+		text-align: left;
+		background: #f1f1f1;
+		min-height: 25rem;
+		height: 40rem;
+		overflow-y: auto;
+		overflow-x: hidden;
+	}
+
+	.msgDiv {
+		position: relative;
+		background-color: #f7f7f7;
+		border: 1px solid #eaeaea;
+		border-radius: 10px;
+		margin: 3% 35% 3% 35%;
+		padding: 2%;
+		text-align: left;
+	}
+
+	.context {
+		word-break: break-word;
+		white-space: pre-wrap;
+	}
+
+	.msgDiv[d-r='rec'] {
+		right: 15rem;
+	}
+
+	.msgDiv[d-r='send'] {
+		left: 15rem;
+	}
+
+	#chatDiv {
+		background-color: white;
+		border-radius: 0 0 10px 10px;
+	}
+
+	#chattingInput {
+		width: 100%;
+		margin-left: 1%;
+		min-height: 7rem;
+	}
+
+	#chattingSubmit {
+		display: inline-block;
+		font-size: 24px;
+		font-weight: 400;
+		line-height: 1.42857143;
+		text-align: center;
+		white-space: nowrap;
+		vertical-align: middle;
+		touch-action: manipulation;
+		cursor: pointer;
+		user-select: none;
+		background-image: none;
+		border: 1px solid transparent;
+		border-radius: 4px;
+		width: 4rem;
+		margin: auto auto;
+	}
+
+	#uploadImgIcon>.fa-image {
+		font-size: 24px;
+	}
+
+	#inputDiv {
+		margin-top: 1%;
+		display: flex;
+		justify-content: center;
+		align-items: flex-start;
+	}
+</style>
+
+<body>
+	<div id="centerDiv">
+		<h3 id="chatTitle">Chatting Room</h3>
+		<div id="chatDiv">
+			<div id="chat">
+			</div>
+			<div id="inputDiv">
+				<textarea id="chattingInput" placeholder="Say something..."></textarea>
+				<i class="fas fa-paper-plane" id="chattingSubmit"></i>
+			</div>
+		</div>
+	</div>
+	<script>
+		let from = parseInt({{ .From }});
+		let to = parseInt({{ .To }});
+		let chattingInput = document.getElementById("chattingInput");
+		/**
+		 * websocket function
+		*/
+		let url = "ws://" + window.location.host + "/ws";
+		let ws = new WebSocket(url);
+		ws.onopen = function (e) {
+			//2 means login.
+			sendMsg("", 2);
+			console.log(e);
+		}
+		ws.onmessage = function (e) {
+			let msg = JSON.parse(e['data']);
+			console.log(msg);
+			$("#chat").append(createMsgModule(msg));
+		};
+
+		function createMsgModule(msg) {
+			let msgSendingWay = from == msg["From"] ? "send" : "rec";
+			let msgDiv = $("<div>", { class: "msgDiv", "d-r": msgSendingWay });
+			let context = $("<div>", { "class": "context" });
+			context.text(msg['Msg']);
+			msgDiv.append(context);
+			return msgDiv;
+		}
+		/**
+		 * Send Msg && socket
+		 * **/
+		function sendMsg(msg, status) {
+			let json = JSON.stringify({
+				Msg: msg,
+				From: from,
+				To: to,
+				status: status,
+			});
+			ws.send(json);
+		}
+
+		function submitMsg() {
+			if (chattingInput.value !== "") {
+				sendMsg(chattingInput.value, 1);
+				chattingInput.value = "";
+			}
+		}
+
+		$("body").on("click", "#chattingSubmit", submitMsg);
+		$("body").on("keydown", "#chattingInput", function (e) {
+			if (e.keyCode === 13 && $("#chattingInput").val() !== "") {
+				sendMsg($("#chattingInput").val(), 1);
+				setTimeout(() => {
+					$("#chattingInput").val("")
+				}, 100)
+			}
+		});
+		/***
+		 * audio function
+		*/
+		function playAudio() {
+			const audio = $("#audio")[0];
+			audio.play();
+		}
+	</script>
+</body>
+
+</html>
