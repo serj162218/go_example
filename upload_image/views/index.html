@@ -1,0 +1,109 @@
+<html>
+
+<head>
+	<title>CS_service - Member</title>
+</head>
+<script src="/assets/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+	integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+	crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+	#preview_img {
+		display: none;
+		width: 5rem;
+		height: 5rem;
+	}
+
+	#preview_img_deletebtn {
+		background-color: red;
+		display: none;
+		border-radius: 50px;
+		height: 1.5rem;
+		width: 1.5rem;
+		border: red;
+		position: relative;
+		left: 4rem;
+		bottom: -1rem;
+	}
+
+	#image-upload-form {
+		margin: auto auto;
+	}
+
+	#uploadImgIcon>.fa-image {
+		font-size: 24px;
+	}
+</style>
+
+<body>
+	<form id="image-upload-form">
+		<label id="uploadImgIcon">
+			<input type="file" name="upimg" id="uploadImgInput" accept=".png,.jpg,.jpeg" style="display: none;">
+			<i class="fa-solid fa-image"></i>
+		</label>
+		<span style="display: inline;">
+			<button id="preview_img_deletebtn">x</button>
+			<img id="preview_img" src="#">
+		</span>
+		<button type="submit">Upload Image</button>
+	</form>
+	<script>
+		//Binding on body. So there's no need to use $.ready.
+		$("body").on("click", "#preview_img_deletebtn", deletePreviewImg);
+		$("body").on("change", "#uploadImgInput", uploadImg);
+
+		// The upload render funciton. will show the image and delete button first.
+		function uploadImg() {
+			let fc = function (e) {
+				$("#preview_img").attr('src', e.target.result);
+				$("#preview_img").css("display", "inline-block");
+				$("#preview_img_deletebtn").css("display", "inline-block");
+				$("#uploadImgIcon").css("display", "none");
+			}
+			readURL($("#uploadImgInput")[0], fc);
+		}
+
+		//Clicking on delete button.
+		function deletePreviewImg() {
+			$("#preview_img").attr("src", "#");
+			$("#preview_img").css("display", "none");
+			$("#preview_img_deletebtn").css("display", "none");
+			$("#uploadImgIcon").css("display", "inline-block");
+			$("#uploadImgInput").val(null);
+		}
+
+		//Render the image.
+		function readURL(input, fc) {
+			if (input.files && input.files[0]) {
+				var reader = new FileReader();
+				reader.onload = fc;
+				reader.readAsDataURL(input.files[0]);
+			}
+		}
+
+		//The submit function. ajax option { contentType, processData } is needed to be false.
+		function imgFormSubmit() {
+			$("#image-upload-form").on('submit', function (e) {
+				e.preventDefault();
+				$.ajax({
+					url: "/uploadImg",
+					method: "POST",
+					data: new FormData(this),
+					contentType: false, //important
+					processData: false, //important
+					dataType: "json",
+				}).done((rs) => {
+					console.log(rs);
+					if (rs['status'] == 200) {
+						alert(rs['dir']);
+					}
+				}).fail((err) => {
+					console.error(err);
+				})
+			});
+		}
+		imgFormSubmit();
+	</script>
+</body>
+
+</html>
