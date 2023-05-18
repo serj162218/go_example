@@ -13,7 +13,7 @@ type BlackList struct {
 }
 
 func AddTokenToBlacklist(token string) error {
-	//store this token to the database
+	// store this token to the database
 	err := initializer.RDB.SAdd(context.TODO(), "black_list", token).Err()
 	if err != nil {
 		return err

@@ -40,7 +40,7 @@ func UserRegister(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"message": "User registered"})
+	c.JSON(http.StatusOK, gin.H{"message": "User registered"})
 }
 
 func UserLogin(c *gin.Context) {
@@ -71,7 +71,7 @@ func UserLogin(c *gin.Context) {
 		return
 	}
 	// Generate JWT token
-	token, err := helper.GenerateToken(dbUser)
+	token, err := helper.GenerateToken(dbUser, initializer.JwtKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -110,7 +110,7 @@ func UserAuthJWTMiddleware(next gin.HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Read token from request Header
 		tokenString := c.GetHeader("Authorization")
-		token, err := helper.VerifyToken(tokenString)
+		token, err := helper.VerifyToken(tokenString, initializer.JwtKey)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return

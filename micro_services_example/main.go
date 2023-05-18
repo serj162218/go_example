@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/serj162218/go_example/micro_services_example/controller"
 	"github.com/serj162218/go_example/micro_services_example/initializer"
 )
